@@ -1,0 +1,23 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Seitron account",
+        "description": "Enter the credentials for your Seitron cloud account (the same used by the Hi, Comfort app).",
+        "data": {
+          "host": "API host",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to reach the Seitron API.",
+      "invalid_auth": "Invalid username or password.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "Account already configured."
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "domain": "seitron",
+  "name": "Seitron",
+  "codeowners": ["@Pharia"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/seitronspa/pyseitron",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/seitronspa/pyseitron/issues",
+  "requirements": ["pyseitron==0.0.1"],
+  "version": "0.1.0"
+}
