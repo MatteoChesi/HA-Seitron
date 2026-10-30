@@ -12,9 +12,9 @@
       }
     },
     "error": {
-      "cannot_connect": "Impossibile raggiungere l'API Seitron.",
-      "invalid_auth": "Nome utente o password non validi.",
-      "unknown": "Errore imprevisto."
+      "cannot_connect": "Impossibile raggiungere l'API Seitron — controlla l'URL dell'host (vedi i log HA per l'errore esatto).",
+      "invalid_auth": "Il server ha rifiutato le credenziali. Controlla nome utente / password.",
+      "unknown": "Errore imprevisto — vedi i log HA."
     },
     "abort": {
       "already_configured": "Account già configurato."

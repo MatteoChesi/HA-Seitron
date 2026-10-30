@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import SeitronAuth, SeitronAuthError
+from .api import SeitronAuth, SeitronAuthError, SeitronConnectionError
 from .const import CONF_HOST, CONF_PASSWORD, CONF_USERNAME, DOMAIN
 from .coordinator import SeitronCoordinator
 
@@ -42,6 +42,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: SeitronConfigEntry) -> b
         await auth.async_validate()
     except SeitronAuthError as err:
         raise ConfigEntryAuthFailed(str(err)) from err
+    except SeitronConnectionError as err:
+        raise ConfigEntryNotReady(str(err)) from err
 
     gateway = SeitronGateway(auth)
     coordinator = SeitronCoordinator(hass, auth, gateway)

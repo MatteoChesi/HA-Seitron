@@ -12,9 +12,9 @@
       }
     },
     "error": {
-      "cannot_connect": "Unable to reach the Seitron API.",
-      "invalid_auth": "Invalid username or password.",
-      "unknown": "Unexpected error."
+      "cannot_connect": "Cannot reach the Seitron API — check the host URL (see HA logs for the exact error).",
+      "invalid_auth": "The server rejected the credentials. Check username / password.",
+      "unknown": "Unexpected error — see HA logs."
     },
     "abort": {
       "already_configured": "Account already configured."

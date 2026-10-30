@@ -9,7 +9,7 @@ import voluptuous as vol
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .api import SeitronAuth, SeitronAuthError
+from .api import SeitronAuth, SeitronAuthError, SeitronConnectionError
 from .const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -55,8 +55,11 @@ class SeitronConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 await auth.async_validate()
             except SeitronAuthError as err:
-                _LOGGER.debug("Seitron login failed: %s", err)
+                _LOGGER.warning("Seitron auth rejected: %s", err)
                 errors["base"] = "invalid_auth"
+            except SeitronConnectionError as err:
+                _LOGGER.warning("Seitron connection error: %s", err)
+                errors["base"] = "cannot_connect"
             except Exception:  # noqa: BLE001
                 _LOGGER.exception("Unexpected error during Seitron login")
                 errors["base"] = "unknown"

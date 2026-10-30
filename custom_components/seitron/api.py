@@ -14,7 +14,7 @@ import logging
 import time
 from typing import Any
 
-from aiohttp import ClientResponseError, ClientSession
+from aiohttp import ClientError, ClientResponseError, ClientSession
 from pyseitron.auth import AbstractAuth
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,8 +23,16 @@ LOGIN_PATH = "auth/login"
 TOKEN_REFRESH_MARGIN = 30
 
 
-class SeitronAuthError(Exception):
-    """Raised when login against the Seitron cloud fails."""
+class SeitronError(Exception):
+    """Base error for the Seitron auth layer."""
+
+
+class SeitronAuthError(SeitronError):
+    """Raised when the Seitron cloud rejects the credentials (401/403)."""
+
+
+class SeitronConnectionError(SeitronError):
+    """Raised when the Seitron cloud is unreachable or replies with an unexpected status."""
 
 
 class SeitronAuth(AbstractAuth):
@@ -64,20 +72,44 @@ class SeitronAuth(AbstractAuth):
             "username": self._username,
             "password": self._password,
         }
+        _LOGGER.debug("Seitron login POST %s", url)
         try:
             async with self.websession.post(url, json=payload) as resp:
+                body_preview = await resp.text()
+                _LOGGER.debug(
+                    "Seitron login response: status=%s body[:200]=%r",
+                    resp.status,
+                    body_preview[:200],
+                )
                 if resp.status in (401, 403):
-                    raise SeitronAuthError("Invalid username or password")
-                resp.raise_for_status()
-                data = await resp.json()
+                    raise SeitronAuthError(
+                        f"Credentials rejected by {url} (HTTP {resp.status})"
+                    )
+                if resp.status >= 400:
+                    raise SeitronConnectionError(
+                        f"Login endpoint {url} returned HTTP {resp.status}. "
+                        "Likely the host or login path is wrong."
+                    )
+                try:
+                    data = await resp.json(content_type=None)
+                except ValueError as err:
+                    raise SeitronConnectionError(
+                        f"Login endpoint {url} did not return JSON "
+                        f"(got Content-Type {resp.headers.get('Content-Type')!r})."
+                    ) from err
         except ClientResponseError as err:
-            raise SeitronAuthError(f"Login HTTP error: {err}") from err
-        except (TimeoutError, OSError) as err:
-            raise SeitronAuthError(f"Cannot reach Seitron API: {err}") from err
+            raise SeitronConnectionError(f"Login HTTP error: {err}") from err
+        except (TimeoutError, OSError, ClientError) as err:
+            raise SeitronConnectionError(
+                f"Cannot reach Seitron API at {url}: {err}"
+            ) from err
 
         token = data.get("access_token") or data.get("token")
         if not token:
-            raise SeitronAuthError("Login response did not include an access token")
+            raise SeitronConnectionError(
+                f"Login response from {url} did not include an access token. "
+                f"Keys: {list(data)}"
+            )
 
         self._access_token = token
         self._refresh_token = data.get("refresh_token")
